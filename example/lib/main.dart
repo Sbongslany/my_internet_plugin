@@ -1,61 +1,60 @@
+// This code creates a Flutter app to check internet connectivity using the MyInternetPlugin.
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:my_internet_plugin/my_internet_plugin.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
   @override
-  State<MyApp> createState() => _MyAppState();
+  _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  final _myInternetPlugin = MyInternetPlugin();
+  // Boolean variable to track internet connectivity status.
+  bool _isConnected = false;
 
+  // initState method, called when this object is inserted into the tree.
   @override
   void initState() {
     super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await _myInternetPlugin.getPlatformVersion() ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
+    // Listening to connectivity changes using the onConnectivityChanged stream.
+    MyInternetPlugin.onConnectivityChanged.listen((bool isConnected) {
+      setState(() {
+        _isConnected = isConnected;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Internet Connectivity'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text('Internet Connectivity: $_isConnected'), // Text widget to display internet connectivity status.
+              ElevatedButton(
+
+                onPressed: () async {
+                  // onPressed callback function when the button is pressed.
+                  bool isConnected =
+                  await MyInternetPlugin.checkInternet(); // Checking internet connectivity.
+                  setState(() {
+                    // Updating the UI with the new connectivity status.
+                    _isConnected = isConnected;
+                  });
+                },
+                child: const Text('Check Connectivity'), // Text displayed on the button.
+              ),
+            ],
+          ),
         ),
       ),
     );
